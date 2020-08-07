@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
+<meta name="author" content="Sophie Haskins">
+<meta name="description" content="In this post I&rsquo;m going to walk through setting up a single-node Kubernetes cluster for personal use. I&rsquo;ll start from scratch on a newly-provisioned host and end up with a Kubernetes &ldquo;cluster&rdquo; with Ingress capabilities. The cluster this process makes is very similar to the cluster I run in my home (see &ldquo;How this differs from a physical cluster&rdquo; below).
+Why would you want this A single-node &ldquo;cluster&rdquo; (I&rsquo;m gonna dispense with the scare-quotes from here on) sounds like a heck of a lot of setup when you could just hack together some systemd units and call it a day.">
+
+<meta property="og:title" content="Setting up a personal Kube cluster" />
+<meta property="og:description" content="In this post I&rsquo;m going to walk through setting up a single-node Kubernetes cluster for personal use. I&rsquo;ll start from scratch on a newly-provisioned host and end up with a Kubernetes &ldquo;cluster&rdquo; with Ingress capabilities. The cluster this process makes is very similar to the cluster I run in my home (see &ldquo;How this differs from a physical cluster&rdquo; below).
+Why would you want this A single-node &ldquo;cluster&rdquo; (I&rsquo;m gonna dispense with the scare-quotes from here on) sounds like a heck of a lot of setup when you could just hack together some systemd units and call it a day." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.sophaskins.net/blog/setting-up-a-personal-kube-cluster/" />
+<meta property="article:published_time" content="2017-02-22T19:00:00-05:00" />
+<meta property="article:modified_time" content="2017-02-22T19:00:00-05:00" />
+
+
+<title>
+
+
+     Setting up a personal Kube cluster 
+
+</title>
+<link rel="canonical" href="https://blog.sophaskins.net/blog/setting-up-a-personal-kube-cluster/">
+
+
+
+
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/styles/default.min.css">
+
+
+
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700|Ubuntu+Mono:400,400i,700,700i|Raleway:500">
+
+
+
+    
+    <link rel="stylesheet" href="https://blog.sophaskins.net/css/reset.css?t=2020-03-17%2011%3a47%3a54.98283%20-0400%20EDT%20m%3d%2b0.131695936">
+    <link rel="stylesheet" href="https://blog.sophaskins.net/css/pygments.css?t=2020-03-17%2011%3a47%3a54.98283%20-0400%20EDT%20m%3d%2b0.131695936">
+    <link rel="stylesheet" href="https://blog.sophaskins.net/css/main.css?t=2020-03-17%2011%3a47%3a54.98283%20-0400%20EDT%20m%3d%2b0.131695936">
+    
+
+
+
+
+<link rel="shortcut icon"
+
+    href="https://blog.sophaskins.net/img/leaf.ico"
+
+>
+
+
+
+
+
+
+
+
+</head>
+
+
+<body lang="">
+
+<section class="header">
+    <div class="container">
+        <div class="content">
+            
+            <a href="https://blog.sophaskins.net/"><div class="name">Sophie Haskins</div></a>
+            
+              <h3 class="self-intro">blog.sophaskins.net | personal essays</h3>
+            
+            <nav>
+                <ul>
+                    
+                        <li class="nav-blog"><a href="https://blog.sophaskins.net/blog/"><span>Blog</span></a></li>
+                    
+                        <li class="nav-about"><a href="https://blog.sophaskins.net/about/"><span>About</span></a></li>
+                    
+                        <li class="nav-code"><a href="https://blog.sophaskins.net/code/"><span>Code</span></a></li>
+                    
+                </ul>
+            </nav>
+        </div>
+    </div>
+</section>
+
+<section class="icons">
+    <div class="container">
+        <div class="content">
+
+        
+            <a href="//github.com/sophaskins" target="_blank" rel="noopener"><img class="icon" src="https://blog.sophaskins.net/img/github.svg" alt="github" /></a>
+        
+
+        
+            <a href="//twitter.com/sophaskins" target="_blank" rel="noopener"><img class="icon" src="https://blog.sophaskins.net/img/twitter.svg" alt="twitter" /></a>
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+            <a href="https://blog.sophaskins.net/index.xml"><img class="icon" src="https://blog.sophaskins.net/img/rss.svg" alt="rss" /></a>
+        
+        
+
+        <div class="rc-scout"></div>
+
+        </div>
+    </div>
+</section>
+
+
+<section class="main post non-narrow zero-top-spacing">
+    <div class="container">
+        <div class="content">
+            <div class="front-matter">
+                <div class="title-container">
+                    <div class="page-heading">
+
+    Setting up a personal Kube cluster
+
+</div>
+
+                    <div class="initials"><a href="https://blog.sophaskins.net/"></a></div>
+                </div>
+                <div class="meta">
+                    
+                    <div class="date" title='Wed Feb 22 2017 19:00:00 EST'>Feb 22, 2017</div>
+                    
+                    
+		    <div class="reading-time"><div class="middot"></div>11 minutes read</div>
+                    
+                </div>
+            </div>
+            <div class="markdown">
+                <p>In this post I&rsquo;m going to walk through setting up a <strong>single-node Kubernetes cluster</strong> for personal use. I&rsquo;ll start from scratch on a newly-provisioned host and end up with a Kubernetes &ldquo;cluster&rdquo; with Ingress capabilities. The cluster this process makes is very similar to the cluster I run in my home (see &ldquo;How this differs from a physical cluster&rdquo; below).</p>
+<h3 id="why-would-you-want-this">Why would you want this</h3>
+<p>A single-node &ldquo;cluster&rdquo; (I&rsquo;m gonna dispense with the scare-quotes from here on) sounds like a heck of a lot of setup when you could just hack together some systemd units and call it a day. Maybe that&rsquo;s all you need! Some of the reasons I like having this setup are that it&rsquo;s:</p>
+<ul>
+<li>a place to experiment with Kubernetes outside of work</li>
+<li>a way to deploy personal projects to &ldquo;real&rdquo; TLS encrypted URLs with minimal overhead</li>
+<li>the starting point for a lab to experiment with distributed systems</li>
+<li>an environment (outside of work) where I can try out automated infrastructure patterns</li>
+</ul>
+<h3 id="requirements">Requirements</h3>
+<p>To build a cluster, you&rsquo;ll need:</p>
+<ul>
+<li>a <strong>server</strong> running Linux: This post&rsquo;s examples are from a <a href="https://m.do.co/c/fbff6f58de5a">Digital Ocean</a> droplet with 4GB of RAM running Ubuntu 16.04.</li>
+</ul>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ doctl compute droplet list
+Name                    Public IPv4     Memory  VCPUs   Image                   Status
+ubuntu-2gb-nyc3-01      45.55.235.146   <span class="m">4096</span>    <span class="m">2</span>       Ubuntu 16.04.1 x64      active
+</code></pre></div><p>At home, I&rsquo;m running the same OS on a <a href="http://www.intel.com/content/www/us/en/nuc/overview.html">physical server</a>. You don&rsquo;t have to use a totally-fresh server, but it&rsquo;ll make things easier - we will be taking over <strong>port 80</strong> and <strong>port 443</strong>.</p>
+<ul>
+<li>a <strong>domain name</strong>: You&rsquo;ll get the most benefit if you can set a wildcard DNS record pointing to your server. I&rsquo;ll be using <code>burnitdown.biz</code> as the domain for my cluster throughout these steps, where I&rsquo;ve set <code>*.burnitdown.biz</code> to point to my droplet.</li>
+</ul>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ dig kube.burnitdown.biz +short
+45.55.235.146
+$ dig somerandomsubdomain.burnitdown.biz +short
+45.55.235.146
+</code></pre></div><p>If you can&rsquo;t set wildcard records you&rsquo;ll get through these steps fine with only <code>kube.burnitdown.biz</code>, <code>evepraisal.burnitdown.biz</code>, and <code>irc.burnitdown.biz</code> pointing to your server.</p>
+<ul>
+<li>an <strong>email address</strong>: You&rsquo;ll use this as the contact for your TLS certificates from <a href="https://letsencrypt.org/">LetsEncrypt</a>.</li>
+</ul>
+<h3 id="setup">Setup</h3>
+<p>I&rsquo;ll be using <code>kubeadm</code>, a tool from the Kubernetes project for bootstrapping clusters on arbitrary Linux boxes (as opposed to tools like <a href="https://github.com/kubernetes/kops">kops</a> targeted at specific clouds). For the <code>kubeadm</code> portions of this article I&rsquo;ll be leaning heavily on its <a href="https://kubernetes.io/docs/getting-started-guides/kubeadm/">getting started guide</a>.</p>
+<p>These instructions will show how to get relevant packages and Kubernetes manifests directly from their source. I have, however, collected up the manifests used in a <a href="https://github.com/sophaskins/setting-up-a-personal-kube-cluster">GitHub repo</a> in case you want to see them all in one place.</p>
+<p><strong>1) Install Kubernetes packages</strong>: the <a href="https://kubernetes.io/docs/getting-started-guides/kubeadm/">kubeadm guide&rsquo;s</a> step 1 includes details for how to set up a Google package mirror that includes all the packages we need:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg <span class="p">|</span> apt-key add -
+OK
+$ cat <span class="s">&lt;&lt;EOF &gt; /etc/apt/sources.list.d/kubernetes.list
+</span><span class="s">&gt; deb http://apt.kubernetes.io/ kubernetes-xenial main
+</span><span class="s">&gt; EOF</span>
+$ apt-get update
+<span class="c1"># ...</span>
+$ apt-get install -y docker.io
+<span class="c1"># ...</span>
+$ apt-get install -y kubelet kubeadm kubectl kubernetes-cni
+<span class="c1"># ...</span>
+</code></pre></div><p><strong>2) Generate cluster configs</strong>: the <code>kubeadm init</code> command generates the cluster&rsquo;s various configuration files and starts up its services. Before we jump in and run it without options, it&rsquo;s important to understand some implications of its defaults:</p>
+<ul>
+<li><code>--service-cidr=10.96.0.0/12</code> You should make sure the IP range <strong>doesn&rsquo;t overlap with anything routeable</strong> from your host - otherwise you might end up making either your service network unreachable, or masking over other machines you need to use! <code>10.96.0.0/12</code> is less likely to matter than the default for the pod network - stay tuned.</li>
+</ul>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ ip route
+default via 45.55.192.1 dev eth0 onlink
+10.17.0.0/16 dev eth0  proto kernel  scope link  src 10.17.0.5
+45.55.192.0/18 dev eth0  proto kernel  scope link  src 45.55.235.146
+172.17.0.0/16 dev docker0  proto kernel  scope link  src 172.17.0.1 linkdown
+</code></pre></div><p>My droplet&rsquo;s network doesn&rsquo;t overlap with <code>10.96.0.0/12</code> - its internal interface is on <code>10.17.0.0/16</code>, and it additionally listens to a (non-overlapping) public IP. I&rsquo;ll leave this setting at the default.</p>
+<ul>
+<li><code>--api-external-dns-names</code> This option allows us to specify additional CNs for the certificate <code>kubeadm init</code> generates for the <code>kube-apiserver</code> service. By default, it tries to detect hostname and IP addresses and make them CNs. That is probably fine on my droplet because <code>kubeadm</code> can discover the public IP, but things are trickier on my home cluster (see &ldquo;Extra considerations for a physical cluster&rdquo; below). I&rsquo;ll pass <code>--api-external-dns-names=kube.burnitdown.biz</code> for consistency with that setup.</li>
+</ul>
+<p>That&rsquo;s all I&rsquo;m worried about here. If your setup is meaningfully different from mine, the <a href="https://kubernetes.io/docs/admin/kubeadm/">reference</a> is handy for learning about other options and their implications.</p>
+<p>My run of <code>kubeadm init</code> looks like:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ kubeadm init --api-external-dns-names<span class="o">=</span>kube.burnitdown.biz
+<span class="o">[</span>kubeadm<span class="o">]</span> WARNING: kubeadm is in alpha, please <span class="k">do</span> not use it <span class="k">for</span> production clusters.
+<span class="o">[</span>preflight<span class="o">]</span> Running pre-flight checks
+<span class="o">[</span>init<span class="o">]</span> Using Kubernetes version: v1.5.3
+<span class="o">[</span>tokens<span class="o">]</span> Generated token: <span class="s2">&#34;5bd33a.90b60427802097f5&#34;</span>
+<span class="o">[</span>certificates<span class="o">]</span> Generated Certificate Authority key and certificate.
+<span class="o">[</span>certificates<span class="o">]</span> Generated API Server key and certificate
+<span class="o">[</span>certificates<span class="o">]</span> Generated Service Account signing keys
+<span class="o">[</span>certificates<span class="o">]</span> Created keys and certificates in <span class="s2">&#34;/etc/kubernetes/pki&#34;</span>
+<span class="o">[</span>kubeconfig<span class="o">]</span> Wrote KubeConfig file to disk: <span class="s2">&#34;/etc/kubernetes/kubelet.conf&#34;</span>
+<span class="o">[</span>kubeconfig<span class="o">]</span> Wrote KubeConfig file to disk: <span class="s2">&#34;/etc/kubernetes/admin.conf&#34;</span>
+<span class="o">[</span>apiclient<span class="o">]</span> Created API client, waiting <span class="k">for</span> the control plane to become ready
+<span class="o">[</span>apiclient<span class="o">]</span> All control plane components are healthy after 38.063960 seconds
+<span class="o">[</span>apiclient<span class="o">]</span> Waiting <span class="k">for</span> at least one node to register and become ready
+<span class="o">[</span>apiclient<span class="o">]</span> First node is ready after 4.507374 seconds
+<span class="o">[</span>apiclient<span class="o">]</span> Creating a <span class="nb">test</span> deployment
+<span class="o">[</span>apiclient<span class="o">]</span> Test deployment succeeded
+<span class="o">[</span>token-discovery<span class="o">]</span> Created the kube-discovery deployment, waiting <span class="k">for</span> it to become ready
+<span class="o">[</span>token-discovery<span class="o">]</span> kube-discovery is ready after 14.005653 seconds
+<span class="o">[</span>addons<span class="o">]</span> Created essential addon: kube-proxy
+<span class="o">[</span>addons<span class="o">]</span> Created essential addon: kube-dns
+
+Your Kubernetes master has initialized successfully!
+
+You should now deploy a pod network to the cluster.
+Run <span class="s2">&#34;kubectl apply -f [podnetwork].yaml&#34;</span> with one of the options listed at:
+    http://kubernetes.io/docs/admin/addons/
+
+You can now join any number of machines by running the following on each node:
+
+kubeadm join --token<span class="o">=</span>5bd33a.90b60427802097f5 45.55.235.146
+
+<span class="c1"># note: yes this is the real token, but no, this cluster doesn&#39;t exist anymore</span>
+</code></pre></div><p><code>kubeadm</code> has a bunch of features for multi-node clusters (like the join token in the output above!). One of those &ldquo;features&rdquo; is that, by default, Kubernetes wont schedule non-system pods on the master node. Since this cluster is only going to be one node, I&rsquo;ll remove the node taint that causes it to shirk duty:</p>
+<pre><code>$ kubectl taint nodes --all dedicated-
+node &quot;ubuntu-2gb-nyc3-01&quot; tainted
+</code></pre><p><strong>3) Set up a pod network</strong>: <code>kubeadm</code> has <strong>no default pod network</strong> - we must choose from between the CNI options. There&rsquo;s a handy list of your options on the <a href="https://kubernetes.io/docs/admin/addons/">Kubernetes website</a>, and a lot of reasons why we might pick one over the other (check out Julia Evans&rsquo;s <a href="http://jvns.ca/blog/2016/12/22/container-networking/">awesome post</a>). I like Calico, and this is my blog, so that&rsquo;s what we&rsquo;ll use for this cluster. <a href="https://www.projectcalico.org/">Project Calico</a> provides handy <code>kubeadm</code>-targeted <a href="http://docs.projectcalico.org/v2.0/getting-started/kubernetes/installation/hosted/kubeadm/">documentation</a>. We <em>could</em> just blindly apply the manifest they provide, but the defaults have implications.</p>
+<p>The pod network that their <a href="http://docs.projectcalico.org/v2.0/getting-started/kubernetes/installation/hosted/kubeadm/calico.yaml">manifest</a> creates uses the CIDR <code>192.168.0.0/16</code>. For the droplet, this is totally fine, but on my home network, <strong>that&rsquo;s the network my WiFi router uses</strong>! Edit the manifest to use a range that works for you if the default one doesn&rsquo;t.</p>
+<p>On the droplet, this applies like so:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ wget -q http://docs.projectcalico.org/v2.0/getting-started/kubernetes/installation/hosted/kubeadm/calico.yaml
+$ kubectl apply -f calico.yaml
+configmap <span class="s2">&#34;calico-config&#34;</span> created
+daemonset <span class="s2">&#34;calico-etcd&#34;</span> created
+service <span class="s2">&#34;calico-etcd&#34;</span> created
+daemonset <span class="s2">&#34;calico-node&#34;</span> created
+deployment <span class="s2">&#34;calico-policy-controller&#34;</span> created
+job <span class="s2">&#34;configure-calico&#34;</span> created
+</code></pre></div><p><strong>4) breathe!</strong> That about wraps up the <code>kubeadm</code> portion! If all has gone well, you&rsquo;ve got a single-node cluster running the basic set of Kubernetes controllers. Mine seems to be doing well:</p>
+<pre><code>$ kubectl get pods --namespace kube-system
+NAME                                         READY     STATUS    RESTARTS   AGE
+calico-etcd-l41vm                            1/1       Running   0          1m
+calico-node-208wc                            2/2       Running   0          1m
+calico-policy-controller-917753764-5l3dh     1/1       Running   0          1m
+dummy-2088944543-x56wp                       1/1       Running   0          3m
+etcd-ubuntu-2gb-nyc3-01                      1/1       Running   0          2m
+kube-apiserver-ubuntu-2gb-nyc3-01            1/1       Running   0          3m
+kube-controller-manager-ubuntu-2gb-nyc3-01   1/1       Running   0          3m
+kube-discovery-1769846148-rgm2z              1/1       Running   0          3m
+kube-dns-2924299975-s3h9l                    4/4       Running   0          2m
+kube-proxy-vtnvl                             1/1       Running   0          2m
+kube-scheduler-ubuntu-2gb-nyc3-01            1/1       Running   0          2m
+</code></pre><p>Super rad! Now, on to setting up an Ingress Controller so the cluster can easily expose services to the Internet.</p>
+<p><strong>5) Install nginx ingress</strong>: in order to expose web services on port 80/443 with publicly resolvable domain names, we need some sort of load balancer that is aware of services running on the cluster and able to route between them. Conveniently, that&rsquo;s exactly what <a href="https://kubernetes.io/docs/user-guide/ingress/">Ingress Controllers</a> do. I&rsquo;m going to use the <a href="https://github.com/kubernetes/ingress/tree/master/controllers/nginx">nginx-based</a> ingress controller, but if your host is running somewhere with &ldquo;real&rdquo; load balancers (like AWS ELBs) it might make sense to check out other options.</p>
+<p>The Ingress project has <a href="https://github.com/kubernetes/ingress/tree/master/examples/deployment/nginx/kubeadm">documentation</a> for how to set up on a kubeadm cluster - I&rsquo;ll follow that:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ wget -q https://raw.githubusercontent.com/kubernetes/ingress/master/examples/deployment/nginx/kubeadm/nginx-ingress-controller.yaml
+$ kubectl apply -f nginx-ingress-controller.yaml
+deployment <span class="s2">&#34;default-http-backend&#34;</span> created
+service <span class="s2">&#34;default-http-backend&#34;</span> created
+deployment <span class="s2">&#34;nginx-ingress-controller&#34;</span> created
+</code></pre></div><p><strong>6) Install kube-lego</strong>: this nifty add-on to <code>nginx-ingress-controller</code> watches for new ingresses and fetches LetsEncrypt certs for the relevant domains! It makes having proper TLS super easy! They provide manifests we can apply <a href="https://github.com/jetstack/kube-lego/tree/master/examples/nginx/lego">here</a>, but you will need to put your own email address in the <code>kube-lego-configmap.yaml</code> before you apply it.</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ wget -q -O kube-lego-namespace.yaml https://raw.githubusercontent.com/jetstack/kube-lego/master/examples/nginx/lego/00-namespace.yaml
+$ wget -q -O kube-lego-configmap.yaml https://raw.githubusercontent.com/jetstack/kube-lego/master/examples/nginx/lego/configmap.yaml
+$ wget -q -O kube-lego-deployment.yaml https://raw.githubusercontent.com/jetstack/kube-lego/master/examples/nginx/lego/deployment.yaml
+
+<span class="c1"># put my email address in the right place...</span>
+$ vim kube-lego-configmap.yaml
+
+<span class="c1"># ...then apply the manifests</span>
+$ kubectl apply -f kube-lego-namespace.yaml
+namespace <span class="s2">&#34;kube-lego&#34;</span> created
+$ kubectl apply -f kube-lego-configmap.yaml
+configmap <span class="s2">&#34;kube-lego&#34;</span> created
+$ kubectl apply -f kube-lego-deployment.yaml
+deployment <span class="s2">&#34;kube-lego&#34;</span> created
+</code></pre></div><p><strong>7) Run some services!</strong> We should be all set! To put the cluster through it&rsquo;s paces, I&rsquo;ve set up a few example applications.</p>
+<p>The first one is <a href="https://github.com/glowing-bear/glowing-bear">Glowing Bear</a>, a web frontend to the popular IRC client <a href="https://weechat.org/">WeeChat</a>. It&rsquo;s entirely made of static assets, so <a href="https://github.com/sophaskins/setting-up-a-personal-kube-cluster/blob/master/glowing-bear.yaml">my manifest</a> just downloads them and serves them from an nginx pod.</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ wget -q https://raw.githubusercontent.com/sophaskins/setting-up-a-personal-kube-cluster/master/glowing-bear.yaml
+$ kubectl apply -f glowing-bear.yaml
+
+<span class="c1"># wait a couple of seconds for kube-lego to grab the cert</span>
+
+<span class="c1"># check it out at https://irc.burnitdown.biz</span>
+$ curl https://irc.burnitdown.biz
+&lt;!DOCTYPE html&gt;
+&lt;html ng-app<span class="o">=</span><span class="s2">&#34;weechat&#34;</span> ng-cloak&gt;
+  &lt;head&gt;
+    &lt;meta <span class="nv">charset</span><span class="o">=</span><span class="s2">&#34;utf-8&#34;</span>&gt;
+    &lt;meta http-equiv<span class="o">=</span><span class="s2">&#34;X-UA-Compatible&#34;</span> <span class="nv">content</span><span class="o">=</span><span class="s2">&#34;IE=Edge&#34;</span>&gt;
+    &lt;meta <span class="nv">name</span><span class="o">=</span><span class="s2">&#34;viewport&#34;</span> <span class="nv">content</span><span class="o">=</span><span class="s2">&#34;width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no&#34;</span>&gt;
+    &lt;meta <span class="nv">name</span><span class="o">=</span><span class="s2">&#34;apple-mobile-web-app-capable&#34;</span> <span class="nv">content</span><span class="o">=</span><span class="s2">&#34;yes&#34;</span>&gt;
+    &lt;meta <span class="nv">name</span><span class="o">=</span><span class="s2">&#34;mobile-web-app-capable&#34;</span> <span class="nv">content</span><span class="o">=</span><span class="s2">&#34;yes&#34;</span>&gt;
+<span class="c1"># ...</span>
+</code></pre></div><p>In a matter of a few seconds, I just deployed web service, put it behind a (admittedly somewhat lowbrow) load-balancer, and automatically fetched a (browser-valid!) TLS certificate. The future is now!</p>
+<p>We can run more than just static JS apps - my second example is a Kubernetes deployment of the super-useful EVE Online tool <a href="http://evepraisal.com/">Evepraisal</a>. It&rsquo;s a Python Flask app that parses lists of items, looks up their prices in the popular EVE market systems, and tells you how much the list is worth. I put together a <a href="https://github.com/sophaskins/evepraisal/blob/master/Dockerfile">Docker wrapper</a> and <a href="https://github.com/sophaskins/setting-up-a-personal-kube-cluster/blob/master/evepraisal.yaml">Kubernetes manifests</a> for it:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ wget -q https://raw.githubusercontent.com/sophaskins/setting-up-a-personal-kube-cluster/master/evepraisal.yaml
+$ kubectl apply -f evepraisal.yaml
+
+<span class="c1"># wait a couple of seconds for kube-lego to grab the cert</span>
+<span class="c1"># check it out at https://evepraisal.burnitdown.biz</span>
+</code></pre></div><p>Wicked rad! Now I&rsquo;ve verified that I can serve multiple different websites (with different certificates!) from the same IP. Pretty cool!</p>
+<h3 id="extra-considerations-for-a-physical-cluster">Extra considerations for a physical cluster</h3>
+<p>I run pretty much this exact setup at home on a small PC. The main ways it differs are because my PC doesn&rsquo;t have an internet-routeable IP address - it connects via NAT to my cable modem. I&rsquo;ve port-forwarded many ports (including 80 and 443) from my external IP to my server, so for the most part things work transparently. One place it <em>doesn&rsquo;t</em> is <code>kubeadm</code> discovery of the IPs to generate certificates for. I like to use <code>kubectl</code> from other hosts than just directly on my server.</p>
+<p>This gets down to why I made sure to pass <code>--api-external-dns-names=kube.burnitdown.biz</code> to kubeadm earlier. This option adds CNs to the TLS certificate generated for <code>kube-apiserver</code> - it needs to be valid for whatever name I&rsquo;m accessing it under via kubectl. Since <code>kube.burnitdown.biz</code> is a valid name for the server (<em>even</em> if it&rsquo;s sitting behind NAT, like in my home cluster), kubectl will be happy with it.</p>
+<p>Also, as I mentioned in step 3 &ldquo;Set up a pod network&rdquo;, the default pod CIDR Calico uses is <code>192.168.0.0/16</code>, which very much interferes with my home network. Changing it to a non-overlapping <a href="https://tools.ietf.org/html/rfc1918">RFC 1918</a> subnet worked great!</p>
+<h3 id="potential-pitfalls">Potential pitfalls</h3>
+<p>Some issues I ran in to while making this post (and maybe you&rsquo;ll hit too!) are:</p>
+<ul>
+<li><strong>Host <code>resolv.conf</code> making <code>kube-dns</code> confused</strong> - I wrote <a href="http://blog.sophaskins.net/blog/misadventures-with-kube-dns/">another blog post</a> about this! The gist is, if your <code>/etc/resolv.conf</code> on the host includes <code>127.0.0.1</code>, you might have trouble.</li>
+<li><strong>Calico&rsquo;s etcd doesn&rsquo;t clean up after itself</strong> - if you&rsquo;re iterating a lot on cluster configuration and <code>kubeadm</code> options, you might use <code>kubeadm reset</code> to blow away your current configuration and start again. If you do, one thing to note is that the Calico configuration I use runs its own etcd on Kubernetes, which stores its data in the <em>host&rsquo;s</em> <code>/var/etcd</code>. While <code>kubeadm reset</code> cleans up after the <em>Kubernetes</em> etcd cluster (which stores data in the host&rsquo;s <code>/var/lib/etcd</code>), it wont clean up the Calico one - you have to do that yourself.</li>
+<li><strong>The &ldquo;sock shop&rdquo; example app uses a lot of RAM</strong>: the <a href="https://kubernetes.io/docs/getting-started-guides/kubeadm/">kubeadm getting started guide</a> suggests a sample application to run run on your cluster, the <a href="https://github.com/microservices-demo/microservices-demo">Sock Shop</a> (a basic ecommerce site that sells socks). While this is a pretty neat example app with a lot of depth, it consumes a <em>lot</em> of RAM. I initially was going to use it in step 7 &ldquo;Run some services!&rdquo; but it ran my droplet out of memory! I ran it on my (much beefier) home machine - simply starting it up seems to take 4.5 GB of RAM.</li>
+</ul>
+
+                <br>
+		<p><a href="https://blog.sophaskins.net/blog/">Back to posts</a></p>
+            </div>
+            <br>
+            <div class="disqus">
+                
+            </div>
+            
+        </div>
+    </div>
+</section>
+
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-91739270-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/highlight.min.js"></script>
+  
+
+  <script type="text/javascript">
+    hljs.initHighlightingOnLoad();
+  </script>
+
+
+
+
+<script async defer src="https://www.recurse-scout.com/loader.js?t=1738b8517df540c1b02fd350f5517117"></script>
+
+
+</body>
+</html>
+

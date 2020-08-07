@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
+<meta name="author" content="Sophie Haskins">
+<meta name="description" content="My home server rack houses a trio of Intel NUCs (among other things). I&rsquo;ve always set them up as Ubuntu Linux running on bare-metal - my career has been spent entirely at companies who run most of their servers that way, so it feels familiar. One thing that NUCs don&rsquo;t support, though, is out-of-band management. To reinstall an OS, I have to flash a USB stick, plug it in to my TV, and grab a USB keyboard - a far cry from the &ldquo;just press a button&rdquo; tooling that&rsquo;s possible if you have even basic IPMI support.">
+
+<meta property="og:title" content="Setting up a home hypervisor" />
+<meta property="og:description" content="My home server rack houses a trio of Intel NUCs (among other things). I&rsquo;ve always set them up as Ubuntu Linux running on bare-metal - my career has been spent entirely at companies who run most of their servers that way, so it feels familiar. One thing that NUCs don&rsquo;t support, though, is out-of-band management. To reinstall an OS, I have to flash a USB stick, plug it in to my TV, and grab a USB keyboard - a far cry from the &ldquo;just press a button&rdquo; tooling that&rsquo;s possible if you have even basic IPMI support." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.sophaskins.net/blog/setting-up-a-home-hypervisor/" />
+<meta property="article:published_time" content="2017-12-10T11:00:00-05:00" />
+<meta property="article:modified_time" content="2017-12-10T11:00:00-05:00" />
+
+
+<title>
+
+
+     Setting up a home hypervisor 
+
+</title>
+<link rel="canonical" href="https://blog.sophaskins.net/blog/setting-up-a-home-hypervisor/">
+
+
+
+
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/styles/default.min.css">
+
+
+
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700|Ubuntu+Mono:400,400i,700,700i|Raleway:500">
+
+
+
+    
+    <link rel="stylesheet" href="https://blog.sophaskins.net/css/reset.css?t=2020-03-17%2011%3a47%3a55.382757%20-0400%20EDT%20m%3d%2b0.531611065">
+    <link rel="stylesheet" href="https://blog.sophaskins.net/css/pygments.css?t=2020-03-17%2011%3a47%3a55.382757%20-0400%20EDT%20m%3d%2b0.531611065">
+    <link rel="stylesheet" href="https://blog.sophaskins.net/css/main.css?t=2020-03-17%2011%3a47%3a55.382757%20-0400%20EDT%20m%3d%2b0.531611065">
+    
+
+
+
+
+<link rel="shortcut icon"
+
+    href="https://blog.sophaskins.net/img/leaf.ico"
+
+>
+
+
+
+
+
+
+
+
+</head>
+
+
+<body lang="">
+
+<section class="header">
+    <div class="container">
+        <div class="content">
+            
+            <a href="https://blog.sophaskins.net/"><div class="name">Sophie Haskins</div></a>
+            
+              <h3 class="self-intro">blog.sophaskins.net | personal essays</h3>
+            
+            <nav>
+                <ul>
+                    
+                        <li class="nav-blog"><a href="https://blog.sophaskins.net/blog/"><span>Blog</span></a></li>
+                    
+                        <li class="nav-about"><a href="https://blog.sophaskins.net/about/"><span>About</span></a></li>
+                    
+                        <li class="nav-code"><a href="https://blog.sophaskins.net/code/"><span>Code</span></a></li>
+                    
+                </ul>
+            </nav>
+        </div>
+    </div>
+</section>
+
+<section class="icons">
+    <div class="container">
+        <div class="content">
+
+        
+            <a href="//github.com/sophaskins" target="_blank" rel="noopener"><img class="icon" src="https://blog.sophaskins.net/img/github.svg" alt="github" /></a>
+        
+
+        
+            <a href="//twitter.com/sophaskins" target="_blank" rel="noopener"><img class="icon" src="https://blog.sophaskins.net/img/twitter.svg" alt="twitter" /></a>
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+            <a href="https://blog.sophaskins.net/index.xml"><img class="icon" src="https://blog.sophaskins.net/img/rss.svg" alt="rss" /></a>
+        
+        
+
+        <div class="rc-scout"></div>
+
+        </div>
+    </div>
+</section>
+
+
+<section class="main post non-narrow zero-top-spacing">
+    <div class="container">
+        <div class="content">
+            <div class="front-matter">
+                <div class="title-container">
+                    <div class="page-heading">
+
+    Setting up a home hypervisor
+
+</div>
+
+                    <div class="initials"><a href="https://blog.sophaskins.net/"></a></div>
+                </div>
+                <div class="meta">
+                    
+                    <div class="date" title='Sun Dec 10 2017 11:00:00 EST'>Dec 10, 2017</div>
+                    
+                    
+		    <div class="reading-time"><div class="middot"></div>6 minutes read</div>
+                    
+                </div>
+            </div>
+            <div class="markdown">
+                <p>My home server rack houses a trio of Intel NUCs (among other things). I&rsquo;ve always set them up as Ubuntu Linux <strong>running on bare-metal</strong> - my career has been spent entirely at companies who run most of their servers that way, so it feels familiar. One thing that NUCs <em>don&rsquo;t</em> support, though, is <strong>out-of-band management</strong>. To reinstall an OS, I have to flash a USB stick, plug it in to my TV, and grab a USB keyboard - a far cry from the &ldquo;just press a button&rdquo; tooling that&rsquo;s possible if you have even basic IPMI support. The pain of even <em>starting</em> a re-install also means I&rsquo;ve never put in the work to script the install process with preseed - something else I miss from work setups!</p>
+<p>I decided to <strong>rebuild my NUCs as VM Hypervisors</strong> - that way, I could use <em>VM</em> tooling as the automation layer, and hopefully never have to deal with flash drives again! In the end, I&rsquo;m probably going to run a bunch of identical Linux VMs running Kubernetes, but easier tooling for building machines means I can experiment with beta features without interfering with my &ldquo;production&rdquo; cluster (that runs this blog!).</p>
+<h2 id="requirements">Requirements</h2>
+<p>Since I have <em>very</em> little experience with virtualization and there are many options out there, I made sure to figure out my requirements  front:</p>
+<ul>
+<li>I want to <strong>run VMs</strong> on my home servers instead of using the bare metal.</li>
+<li>The hypervisor needs to be <strong>as simple as possible</strong> - I want to run close to a &ldquo;stock&rdquo; install so I can focus on what&rsquo;s in the VMs, not on the host. Bonus points if it&rsquo;s simple in a security-hardened sort of way - I don&rsquo;t want to stay up at night worrying about whether my hypervisor is running a vulnerable version of some tool I never use.</li>
+<li>It must <strong>support Linux</strong> well, preferably without needing additional software installed on guests.</li>
+<li>There must be an <strong>API for managing VMs</strong> - at some point, I&rsquo;d like to script the setup of my VMs so I can build and tear down clusters at will. It doesn&rsquo;t need to be a fancy API - a set of CLI tools I can call from bash suffices.</li>
+<li>It needs to be <strong>free</strong> - not that I am ideologically opposed to paying for useful software, but the market for hypervisors is extremely &ldquo;enterprise&rdquo;-oriented (which means large $$$).</li>
+<li><strong>No specialized network or storage requirements</strong> - large virtualization installations often involve &ldquo;network virtualization&rdquo; (overlay networks) and &ldquo;storage virtualization&rdquo; (SANs) - massive overkill for a home setup. I have three servers, they have some local scratch space, it&rsquo;s fine.</li>
+<li>My <strong>hardware must be supported</strong> - the machine I was testing with is an <a href="https://ark.intel.com/products/89186/Intel-NUC-Kit-NUC6i3SYK">Intel NUC6i3SYK</a> with 16 GB of RAM and a 100 GB SSD. This isn&rsquo;t &ldquo;enterprise-class&rdquo; hardware, nor does it have multiple TB of RAM, so I want to watch out for hardware support.</li>
+</ul>
+<h2 id="alternatives-and-attempts">Alternatives and attempts</h2>
+<p>I didn&rsquo;t set out to do a bakeoff, but one eventually emerged after several options I tried didn&rsquo;t work out:</p>
+<ul>
+<li><strong>Microsoft Hyper-V Server</strong>: Microsoft of 2017 seems keenly interested in making Linux-compatible products that are actually useful to developers (<a href="https://www.youtube.com/watch?v=Vhh_GeBPOhs">developers developers developers</a>). <a href="https://docs.microsoft.com/en-us/windows-server/virtualization/hyper-v/hyper-v-server-2016">Hyper-V Server</a> is a free (?!?!) edition of Windows Server that only runs the Hyper-V hypervisor. Installing it on the NUC was a little tricky (Intel doesn&rsquo;t sign drivers for the NUC&rsquo;s network card for Server editions of Windows, so you have to <a href="https://blog.citrix24.com/install-windows-server-2016-core-intel-nuc/">hack it some</a>). I ended up stymied by <a href="https://msdn.microsoft.com/en-us/library/aa384426(v=vs.85).aspx">WinRM</a> for remote management of the hypervisor. I suspect this is less obnoxious in an Active Directory domain environment.</li>
+<li><strong>VMWare vSphere Hypervisor</strong>: VMWare&rsquo;s ESXi is an enterprise workhorse, and the <a href="https://www.vmware.com/products/vsphere-hypervisor.html">standalone hypervisor</a> is free to use. I had no trouble getting it running on the NUC. I set up a few VMs, but had severe performance issues. The machine wasn&rsquo;t oversubscribed, I had the guest additions installed, I couldn&rsquo;t find any obviously wrong configs, but VMs would often hang for several seconds.</li>
+<li><strong>Intel Clear Linux</strong>: Intel&rsquo;s <a href="https://clearlinux.org/">Linux distribution</a> is extremely minimal and focuses on auto-update functionality. My intention was to use it as a KVM host with as few bells and whistles as possible. Bizarrely (for an Intel product) I had driver issues with the NIC - at startup the card would lose link and refuse to work without kicking systemd-udevd and doing the <code>ip link set eno1 up/down</code> dance. That issue aside, it also apparently doesn&rsquo;t bundle a version of netcat that is compatible with the <code>virt-manager</code> KVM remote management tool, so I moved on.</li>
+<li><strong>oVirt Node</strong>: oVirt itself is a broader virtualization management project in the Red Hat sphere of influence. oVirt Node is a <a href="https://ovirt.org/node/">Fedora Linux spin</a> that runs KVM and integrates with the oVirt management service. It&rsquo;s definitely targeted at larger enterprise installs - once I got things working (including having to specify a storage subsystem living on my NAS, because it doesn&rsquo;t seem to easily support local storage of VM volumes?), it quickly became clear that it was <em>way</em> too complicated for my home setup.</li>
+<li><strong>Promox VE</strong>: If you search the Internet for what enthusiasts have used for their home setups, you&rsquo;re bound to hear about <a href="https://www.proxmox.com/en/proxmox-ve">Promox VE</a>, a Linux distribution based around KVM and a custom web interface. The tone of the documentation, marketing materials, and folks singing its praises made it feel like it was perhaps overly focused on cramming in features (in a sort of &ldquo;Android 1.6&rdquo; way) and less on &ldquo;getting out of your way&rdquo; so I didn&rsquo;t end up trying it.</li>
+</ul>
+<h2 id="meet-the-new-champion-same-as-the-old-champion">Meet the new champion, same as the old champion</h2>
+<p>Where I finally ended up was&hellip;running <a href="https://www.ubuntu.com/server">Ubuntu</a> - the same as I had started. A fresh install including KVM tools fit my needs better than any of the others I tried.</p>
+<p>I probably should have tried this first - I&rsquo;m already familiar with the OS. Several friends also recommended &ldquo;just use normal Linux and KVM&rdquo; to me when I told them of my project. I had some vague worries about it being &ldquo;too heavy&rdquo;, but so far it has worked quite well.</p>
+<p>A Kubernetes cluster is already running all my services built on VMs:
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">OK I _think_ I have one of my NUCs successfully set up as a kvm host and running a 3 node kube 1.8.5 (CRI-O) cluster</p>&mdash; cron mom (@sophaskins) <a href="https://twitter.com/sophaskins/status/939593500814921728?ref_src=twsrc%5Etfw">December 9, 2017</a></blockquote>
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+Performance has been good (none of the weird hanging I saw with VMWare), Ubuntu has a large community of users, and there is plenty of scope for me to automate setting up new hypervisors and guests with <a href="https://help.ubuntu.com/lts/installation-guide/armhf/apbs02.html">preseed</a>. Hopefully soon I will also have a more automated configuration of the Kube nodes I run as guests to share with y&rsquo;all!</p>
+
+                <br>
+		<p><a href="https://blog.sophaskins.net/blog/">Back to posts</a></p>
+            </div>
+            <br>
+            <div class="disqus">
+                
+            </div>
+            
+        </div>
+    </div>
+</section>
+
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-91739270-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/highlight.min.js"></script>
+  
+
+  <script type="text/javascript">
+    hljs.initHighlightingOnLoad();
+  </script>
+
+
+
+
+<script async defer src="https://www.recurse-scout.com/loader.js?t=1738b8517df540c1b02fd350f5517117"></script>
+
+
+</body>
+</html>
+

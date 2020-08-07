@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Blog on blog.sophaskins.net</title>
+    <link>https://blog.sophaskins.net/blog/</link>
+    <description>Recent content in Blog on blog.sophaskins.net</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 16 Mar 2020 22:14:00 -0400</lastBuildDate>
+    
+	<atom:link href="https://blog.sophaskins.net/blog/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Jazz Albums for the Socially Distanced</title>
+      <link>https://blog.sophaskins.net/blog/jazz-albums-for-the-socially-distanced/</link>
+      <pubDate>Mon, 16 Mar 2020 22:14:00 -0400</pubDate>
+      
+      <guid>https://blog.sophaskins.net/blog/jazz-albums-for-the-socially-distanced/</guid>
+      <description>I like jazz music - when I was a kid I was obsessed with Duke Ellington. Recently I&amp;rsquo;ve been thinking about trying to get back in to jazz. I recently picked up a headphone amp and DAC specifically for focused music listening, and jazz seems like an ideal genre to dive in to. I recently asked on Twitter for some recommendations for albums:
+Hey twitter! What are your favorite 5 Jazz albums?</description>
+    </item>
+    
+    <item>
+      <title>Quick Pipes: Looking for duplicate downloads</title>
+      <link>https://blog.sophaskins.net/blog/quick-pipes-looking-for-duplicate-downloads/</link>
+      <pubDate>Tue, 05 Nov 2019 11:00:00 -0500</pubDate>
+      
+      <guid>https://blog.sophaskins.net/blog/quick-pipes-looking-for-duplicate-downloads/</guid>
+      <description>I&amp;rsquo;ve been looking to &amp;ldquo;figure out&amp;rdquo; my system for storing photos lately. I have an iPhone and send its photos to Google Photos, and a Sony mirrorless camera and store its photos in a local Adobe Lightroom directory. Both of these come with monthly subscriptions that I don&amp;rsquo;t really want to pay, especially because I don&amp;rsquo;t really care about the cloud features of either (I have a home NAS). The direction I&amp;rsquo;m experimenting with is Photos on a Mac with a handful of separate photo libraries (&amp;ldquo;personal&amp;rdquo;, pizzabox photos, very old/archive photos, homework for my online photography class) to make it easier to back up / move them around if they get too big.</description>
+    </item>
+    
+    <item>
+      <title>My week at the Recurse Center</title>
+      <link>https://blog.sophaskins.net/blog/my-week-at-the-recurse-center/</link>
+      <pubDate>Sun, 28 Jan 2018 16:00:00 -0500</pubDate>
+      
+      <guid>https://blog.sophaskins.net/blog/my-week-at-the-recurse-center/</guid>
+      <description>What is the Recurse Center? The long answer is: see how the Recurse Center describes itself.
+A shorter answer is that, to me, its most important attributes are:
+ it&amp;rsquo;s a retreat for programmers to focus on honing their skills it&amp;rsquo;s self-directed learning, not a curriculum of lectures and assignments it happens in batches of attendees who start at the same time and (usually) finish at the same time attendees have a variety of skill levels - some have been programming much less than a year, some have been programming more than three decades its social norms are structured to make it a safe place to say &amp;ldquo;I don&amp;rsquo;t know&amp;rdquo;, to ask questions, and to learn.</description>
+    </item>
+    
+    <item>
+      <title>Setting up a home hypervisor</title>
+      <link>https://blog.sophaskins.net/blog/setting-up-a-home-hypervisor/</link>
+      <pubDate>Sun, 10 Dec 2017 11:00:00 -0500</pubDate>
+      
+      <guid>https://blog.sophaskins.net/blog/setting-up-a-home-hypervisor/</guid>
+      <description>My home server rack houses a trio of Intel NUCs (among other things). I&amp;rsquo;ve always set them up as Ubuntu Linux running on bare-metal - my career has been spent entirely at companies who run most of their servers that way, so it feels familiar. One thing that NUCs don&amp;rsquo;t support, though, is out-of-band management. To reinstall an OS, I have to flash a USB stick, plug it in to my TV, and grab a USB keyboard - a far cry from the &amp;ldquo;just press a button&amp;rdquo; tooling that&amp;rsquo;s possible if you have even basic IPMI support.</description>
+    </item>
+    
+    <item>
+      <title>Setting up a personal Kube cluster</title>
+      <link>https://blog.sophaskins.net/blog/setting-up-a-personal-kube-cluster/</link>
+      <pubDate>Wed, 22 Feb 2017 19:00:00 -0500</pubDate>
+      
+      <guid>https://blog.sophaskins.net/blog/setting-up-a-personal-kube-cluster/</guid>
+      <description>In this post I&amp;rsquo;m going to walk through setting up a single-node Kubernetes cluster for personal use. I&amp;rsquo;ll start from scratch on a newly-provisioned host and end up with a Kubernetes &amp;ldquo;cluster&amp;rdquo; with Ingress capabilities. The cluster this process makes is very similar to the cluster I run in my home (see &amp;ldquo;How this differs from a physical cluster&amp;rdquo; below).
+Why would you want this A single-node &amp;ldquo;cluster&amp;rdquo; (I&amp;rsquo;m gonna dispense with the scare-quotes from here on) sounds like a heck of a lot of setup when you could just hack together some systemd units and call it a day.</description>
+    </item>
+    
+    <item>
+      <title>Misadventures with Kube DNS</title>
+      <link>https://blog.sophaskins.net/blog/misadventures-with-kube-dns/</link>
+      <pubDate>Thu, 09 Feb 2017 22:48:49 -0500</pubDate>
+      
+      <guid>https://blog.sophaskins.net/blog/misadventures-with-kube-dns/</guid>
+      <description>Kubernetes DNS is neat way to handle simple service-discovery in a kube cluster. The general idea is:
+ watch the kube API for Services and Pods (source here) run a golang DNS server (using SkyDNS) to serve records pointing to those Services and Pods front that DNS server w/ a caching proxy (DNSmasq) point all pods (w/ the property dnsPolicy: ClusterFirst, the default) at the proxy by overriding their /etc/resolv.conf with one that points only to the DNS proxy (implemented with the cluster-dns Kubelet option.</description>
+    </item>
+    
+    <item>
+      <title>EVE Online: Exploring the Unknown</title>
+      <link>https://blog.sophaskins.net/blog/eve-online-exploring-the-unknown/</link>
+      <pubDate>Thu, 01 Dec 2016 20:30:00 -0500</pubDate>
+      
+      <guid>https://blog.sophaskins.net/blog/eve-online-exploring-the-unknown/</guid>
+      <description>In my free time, sometimes I play the online RPG &amp;ldquo;EVE Online&amp;rdquo;. It&amp;rsquo;s a game notorious for being a sandbox - anything goes, which makes for grand strategy, espionage, betrayal, and camaraderie. Recently, the game became Free-to-Play, hopefully injecting some fresh faces in to the (over a decade-old!) game. I had a blast over the past few days and felt like maybe I had a story worth telling.
+While most EVE players live, kill, and die in Known Space (the Universe you see here), my Corporation lives in Wormhole Space - a parallel galaxy with a twist.</description>
+    </item>
+    
+  </channel>
+</rss>

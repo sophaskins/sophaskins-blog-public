@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <url>
+    <loc>https://blog.sophaskins.net/blog/</loc>
+    <lastmod>2020-03-16T22:14:00-04:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.sophaskins.net/</loc>
+    <lastmod>2020-03-16T22:14:00-04:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.sophaskins.net/blog/jazz-albums-for-the-socially-distanced/</loc>
+    <lastmod>2020-03-16T22:14:00-04:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.sophaskins.net/blog/quick-pipes-looking-for-duplicate-downloads/</loc>
+    <lastmod>2019-11-05T11:00:00-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.sophaskins.net/blog/my-week-at-the-recurse-center/</loc>
+    <lastmod>2018-01-28T16:00:00-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.sophaskins.net/blog/setting-up-a-home-hypervisor/</loc>
+    <lastmod>2017-12-10T11:00:00-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.sophaskins.net/blog/setting-up-a-personal-kube-cluster/</loc>
+    <lastmod>2017-02-22T19:00:00-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.sophaskins.net/blog/misadventures-with-kube-dns/</loc>
+    <lastmod>2017-02-09T22:48:49-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.sophaskins.net/code/</loc>
+    <lastmod>2016-12-01T22:48:40-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.sophaskins.net/fixed/</loc>
+    <lastmod>2016-12-01T22:48:40-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.sophaskins.net/about/</loc>
+    <lastmod>2016-12-01T22:44:08-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.sophaskins.net/blog/eve-online-exploring-the-unknown/</loc>
+    <lastmod>2016-12-01T20:30:00-05:00</lastmod>
+  </url>
+  
+</urlset>

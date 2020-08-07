@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Fixed on blog.sophaskins.net</title>
+    <link>https://blog.sophaskins.net/fixed/</link>
+    <description>Recent content in Fixed on blog.sophaskins.net</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 01 Dec 2016 22:48:40 -0500</lastBuildDate>
+    
+	<atom:link href="https://blog.sophaskins.net/fixed/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>code</title>
+      <link>https://blog.sophaskins.net/code/</link>
+      <pubDate>Thu, 01 Dec 2016 22:48:40 -0500</pubDate>
+      
+      <guid>https://blog.sophaskins.net/code/</guid>
+      <description>Check out Github instead!</description>
+    </item>
+    
+    <item>
+      <title>about</title>
+      <link>https://blog.sophaskins.net/about/</link>
+      <pubDate>Thu, 01 Dec 2016 22:44:08 -0500</pubDate>
+      
+      <guid>https://blog.sophaskins.net/about/</guid>
+      <description>Naive Musings</description>
+    </item>
+    
+  </channel>
+</rss>
